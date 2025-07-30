@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avance Horas 2025</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="bg-white p-10 rounded-lg shadow-lg w-full max-w-lg">
+    <h2 class="text-3xl font-bold text-center text-purple-700 mb-6">Avance Horas 2025</h2>
+
+    <form id="formularioHoras" action="https://n8n.dev.karibuspa.com/webhook/gestionhoras" method="POST" class="space-y-4">
+      <div>
+        <label class="block font-semibold">Mes:</label>
+        <select id="mes" name="mes" class="w-full mt-1 border rounded px-3 py-2" onchange="handleMesChange(this.value)">
+          <option value="">Seleccione un mes</option>
+          <option value="Enero">Enero</option>
+          <option value="Febrero">Febrero</option>
+          <option value="Marzo">Marzo</option>
+          <option value="Abril">Abril</option>
+          <option value="Mayo">Mayo</option>
+          <option value="Junio">Junio</option>
+          <option value="Julio">Julio</option>
+          <option value="Agosto">Agosto</option>
+          <option value="Septiembre">Septiembre</option>
+          <option value="Octubre">Octubre</option>
+          <option value="Noviembre">Noviembre</option>
+          <option value="Diciembre">Diciembre</option>
+        </select>
+      </div>
+
+      <!-- Campos ocultos para enviar en el POST -->
+      <input type="hidden" name="semana" value="false" />
+      <input type="hidden" name="dia_ini" id="dia_ini" />
+      <input type="hidden" name="dia_fin" id="dia_fin" />
+
+      <div class="flex justify-between mt-6">
+        <button id="submitBtn" type="submit" class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">
+          Enviar
+        </button>
+        <button type="reset" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600" onclick="resetForm()">
+          Limpiar
+        </button>
+      </div>
+
+      <!-- Indicador de carga -->
+      <div id="loadingIndicator" class="hidden text-center text-purple-700 font-semibold mt-4">
+        Enviando datos...
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const mesSelect = document.getElementById("mes");
+    const diaIni = document.getElementById("dia_ini");
+    const diaFin = document.getElementById("dia_fin");
+
+    const mesesMap = {
+      "Enero": 0, "Febrero": 1, "Marzo": 2, "Abril": 3,
+      "Mayo": 4, "Junio": 5, "Julio": 6, "Agosto": 7,
+      "Septiembre": 8, "Octubre": 9, "Noviembre": 10, "Diciembre": 11
+    };
+
+    function actualizarMesesDisponibles() {
+      const mesActual = new Date().getMonth();
+      const anioActual = new Date().getFullYear();
+
+      Array.from(mesSelect.options).forEach(option => {
+        const valor = option.value;
+        if (mesesMap[valor] !== undefined) {
+          const indexMes = mesesMap[valor];
+          // Desactiva los meses futuros (sólo permite el mes actual y los anteriores)
+          option.disabled = anioActual === 2025 && indexMes > mesActual;
+        }
+      });
+    }
+
+    function handleMesChange(value) {
+      if (value) {
+        const monthIndex = mesesMap[value];
+        const year = 2025;
+
+        const firstDay = new Date(year, monthIndex, 1);
+        const lastDay = new Date(year, monthIndex + 1, 0);
+
+        const formatDate = (date) => {
+          let mm = date.getMonth() + 1;
+          let dd = date.getDate();
+          return `${date.getFullYear()}-${mm < 10 ? '0' + mm : mm}-${dd < 10 ? '0' + dd : dd}`;
+        };
+
+        diaIni.value = formatDate(firstDay);
+        diaFin.value = formatDate(lastDay);
+      } else {
+        diaIni.value = "";
+        diaFin.value = "";
+      }
+    }
+
+    function resetForm() {
+      mesSelect.value = "";
+      diaIni.value = "";
+      diaFin.value = "";
+      document.getElementById("loadingIndicator").classList.add("hidden");
+      document.getElementById("submitBtn").disabled = false;
+      document.getElementById("submitBtn").textContent = "Enviar";
+    }
+
+    document.getElementById("formularioHoras").addEventListener("submit", function(e) {
+      if (!mesSelect.value) {
+        e.preventDefault();
+        alert("Por favor, selecciona un mes antes de enviar.");
+      } else {
+        document.getElementById("loadingIndicator").classList.remove("hidden");
+        const btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.textContent = "Enviando...";
+      }
+    });
+
+    // Ejecutar al cargar
+    actualizarMesesDisponibles();
+  </script>
+</body>
+</html>
